@@ -81,21 +81,6 @@ AeroNexous AI leverages advanced AI techniques to provide:
 
 ---
 
-## Video Explanation Guide
-
-1. **Project Idea:**
-   - Introduce AeroNexous AI as an AI-powered aviation assistant for real-time, expert-level insights.
-2. **Key Features:**
-   - Highlight prompt engineering, RAG, structured output, and function calling.
-3. **Technical Implementation:**
-   - Explain the architecture and how each module works together.
-4. **Demo Scenario:**
-   - Walk through a sample user query and show how the system processes and responds.
-5. **Evaluation:**
-   - Discuss how the system meets correctness, efficiency, and scalability criteria.
-
----
-
 ## Why Choose AeroNexous AI?
 
 AeroNexous AI is more than a chatbot—it's a comprehensive, reliable, and adaptable AI co-pilot for the modern aviation ecosystem, combining state-of-the-art AI, real-time data, and deep domain expertise.
@@ -107,12 +92,8 @@ AeroNexous AI is more than a chatbot—it's a comprehensive, reliable, and adapt
 - **Explainable AI:** Enhanced transparency with reasoning paths and source citations.
 - **Expanded API Ecosystem:** Broader integration with global aviation data providers.
 
----
-
-## License
-[Specify your license here]
 
 ---
 
 ## Contact
-For questions or contributions, please contact [Your Name/Email].
+For questions or contributions, please contact [Jannat/cshsjannat2987@gmail.com].
