@@ -67,6 +67,7 @@ app.post('/query', async (req, res) => {
         temperature: 0.4, //  Set temperature here
         top_p: 0.85, //  Set top_p here
         top_k: 40, //  Set top_k here
+        stop: ["end","stop"], //  Stop sequence to end the response
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `User Profile: ${userProfile}\n\n${userPrompt}` }
