@@ -11,7 +11,7 @@ const secretKey = process.env.AI_SECRET_KEY;
 app.use(bodyParser.json());
 app.use(cors());
 
-// 🔗 Chain of Thought Prompt
+
 const systemPrompt = `
 You are AeroNexous AI — a professional aviation assistant designed to answer aviation-related queries.
 
@@ -77,7 +77,15 @@ app.post('/query', async (req, res) => {
       }
     );
 
-    const reply = response.data.choices[0].message.content;
+    const data = response.data;
+
+    // ✅ Token usage logging
+    if (data.usage) {
+      const { prompt_tokens, completion_tokens, total_tokens } = data.usage;
+      console.log(`Token Usage - Prompt: ${prompt_tokens}, Completion: ${completion_tokens}, Total: ${total_tokens}`);
+    }
+
+    const reply = data.choices[0].message.content;
     res.json({ response: reply });
 
   } catch (error) {
@@ -87,7 +95,7 @@ app.post('/query', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('AeroNexous AI (Chain of Thought) backend is running.');
+  res.send('✅ AeroNexous AI (Chain of Thought) backend is running.');
 });
 
 app.listen(PORT, () => {
