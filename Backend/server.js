@@ -66,6 +66,7 @@ app.post('/query', async (req, res) => {
         model: 'llama3-70b-8192',
         temperature: 0.4, //  Set temperature here
         top_p: 0.85, //  Set top_p here
+        top_k: 40, //  Set top_k here
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `User Profile: ${userProfile}\n\n${userPrompt}` }
