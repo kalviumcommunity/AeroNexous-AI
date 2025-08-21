@@ -8,30 +8,31 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const secretKey = process.env.AI_SECRET_KEY;
 
-
 app.use(bodyParser.json());
 app.use(cors());
 
-
+// ------------------------
+// 🔄 Zero-Shot Prompt (No Examples)
+// ------------------------
 const systemPrompt = `
-You are AeroNexous AI, an expert aviation assistant.
+You are AeroNexous AI, a professional aviation assistant.
 
-**Role**: Aviation expert with deep knowledge of flight systems, meteorology, aircraft performance, and regulations.
+Your job is to:
+- Provide expert explanations on aviation-related topics.
+- Answer technical and non-technical questions.
+- Tailor responses to the user's level of expertise.
 
-**Task**: 
-- Explain aviation concepts.
-- Answer questions based on user expertise.
-- Provide structured, correct, and helpful aviation knowledge.
+Respond using **Markdown** with:
+- Clear **headings**
+- Relevant **bullet points**
+- Proper formatting for readability
 
-**Format**: 
-Respond in **Markdown** with clear sections, bullet points, and readable formatting.
+Ensure your answers are:
+- Accurate
+- Scalable across different user levels
+- Concise and professional
 
-**Criteria**: 
-Ensure responses are:
-- Technically correct
-- Scalable (applicable to various user profiles)
-- Efficient (minimal yet complete explanations)
-- Adapted to the user's expertise
+Do not include any examples unless the user requests it.
 `;
 
 
@@ -69,10 +70,10 @@ app.post('/query', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.send('AeroNexous AI (Groq) backend is running.');
-});
 
+app.get('/', (req, res) => {
+  res.send('AeroNexous AI (Zero-Shot) backend is running.');
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
