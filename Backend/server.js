@@ -64,6 +64,7 @@ app.post('/query', async (req, res) => {
       'https://api.groq.com/openai/v1/chat/completions',
       {
         model: 'llama3-70b-8192',
+        temperature: 0.4, //  Set temperature here
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `User Profile: ${userProfile}\n\n${userPrompt}` }
@@ -79,7 +80,7 @@ app.post('/query', async (req, res) => {
 
     const data = response.data;
 
-    // ✅ Token usage logging
+
     if (data.usage) {
       const { prompt_tokens, completion_tokens, total_tokens } = data.usage;
       console.log(`Token Usage - Prompt: ${prompt_tokens}, Completion: ${completion_tokens}, Total: ${total_tokens}`);
