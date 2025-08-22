@@ -73,14 +73,6 @@ AeroNexous AI leverages advanced AI techniques to provide:
 
 ---
 
-## Evaluation Criteria
-
-- **Correctness:** Returns accurate, context-aware data based on user queries.
-- **Efficiency:** Optimized for low-latency responses and minimal resource usage.
-- **Scalability:** Designed to handle large datasets and high user traffic without degradation.
-
----
-
 ## Why Choose AeroNexous AI?
 
 AeroNexous AI is more than a chatbot—it's a comprehensive, reliable, and adaptable AI co-pilot for the modern aviation ecosystem, combining state-of-the-art AI, real-time data, and deep domain expertise.
@@ -91,8 +83,6 @@ AeroNexous AI is more than a chatbot—it's a comprehensive, reliable, and adapt
 - **Voice and Visual Integration:** Support for voice commands and image-based queries (e.g., identifying airplane parts).
 - **Explainable AI:** Enhanced transparency with reasoning paths and source citations.
 - **Expanded API Ecosystem:** Broader integration with global aviation data providers.
-
-
 ---
 
 ## Contact
