@@ -1,77 +1,87 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const axios = require('axios');
-require('dotenv').config();
-const cors = require('cors');
 
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const axios = require('axios'); 
+require('dotenv').config();
+const MongoURL = process.env.MONGO_URL;
+const secretKey = process.env.AI_SECRET_KEY; 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const secretKey = process.env.AI_SECRET_KEY;
+const cors = require('cors');
+const userRoutes = require('./routes/userroute');
+const chatRoutes = require('./routes/chatroute');
+const Chat = require('./model/chatmodel');
+const User = require('./model/usermodel'); 
+const authMiddleware = require('./middleware/authenticate');
 
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors()); // Enable CORS for all routes
+app.use('/user', userRoutes);
+app.use('/chat',chatRoutes) // User authentication routes
 
+const systemPrompt = `You are AeroNexous AI, an expert aviation assistant.
+Role: Provide expert aviation knowledge and real-time data.
+Task: Explain concepts, fetch live data, and adapt to user expertise.
+Format: Always respond in **Markdown format** using proper headings, bullet points, and formatting for readability.
+Criteria: Ensure correctness, efficiency, and scalability.`;
 
-const systemPrompt = `
-You are AeroNexous AI — a professional aviation assistant designed to answer aviation-related queries.
+// app.post('/embeddings', async (req, res) => {
+//   const { input } = req.body;
+//   if (!input) {
+//     return res.status(400).json({ error: 'Input text is required for embeddings.' });
+//   }
+//   try {
+//     const embeddingResponse = await axios.post(
+//       'https://api.groq.com/openai/v1/embeddings',
+//       {
+//         model: 'text-embedding-ada-002',
+//         input: input
+//       },
+//       {
+//         headers: {
+//           'Authorization': `Bearer ${secretKey}`,
+//           'Content-Type': 'application/json'
+//         }
+//       }
+//     );
+//     res.json(embeddingResponse.data);
+//   } catch (error) {
+//     console.error('Groq Embeddings API error:', error.response?.data || error.message);
+//     res.status(500).json({ error: 'Failed to fetch embeddings from Groq.' });
+//   }
+// });
+function tryParseJSON(jsonString) {
+  try {
+    const cleaned = jsonString
+      .trim()
+      .replace(/^```json/, '')
+      .replace(/```$/, '')
+      .trim();
+    return JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
+}
 
-Your responsibilities:
-- Think through the problem step by step before answering.
-- Use **Chain of Thought reasoning** for any questions that involve calculations, comparisons, or technical evaluations.
-- Use **Markdown formatting** with headings, bullet points, and clear sections.
-
----
-
-🔹 **Example: Chain-of-Thought Reasoning**
-
-**User Profile**: Intermediate pilot  
-**User Prompt**: How do I calculate the glide distance of an aircraft?
-
-**AeroNexous AI Answer**:
-
-### 🧠 Step-by-Step Reasoning (Chain of Thought)
-
-1. **Understand the Concept**:
-   - Glide distance depends on the glide ratio, which is the distance flown horizontally per unit of altitude lost.
-
-2. **Know the Formula**:
-   - Glide Distance = Altitude × Glide Ratio
-
-3. **Convert Units** (if necessary):
-   - Altitude in feet, glide ratio in nautical miles per 1,000 ft
-   - Example: 10,000 ft altitude and a 10:1 glide ratio
-
-4. **Apply the Formula**:
-   - Glide Distance = (10,000 / 1,000) × 10 = 10 × 10 = 100 NM
-
-### ✅ Final Answer:
-You can glide approximately **100 nautical miles** from 10,000 feet with a 10:1 glide ratio.
-
----
-
-🔄 Always follow this reasoning pattern before answering. Explain your thought process first, then give the final answer.
-`;
-
-app.post('/query', async (req, res) => {
-  const { userPrompt, userProfile } = req.body;
-
-  if (!userPrompt || !userProfile) {
-    return res.status(400).json({ error: 'userPrompt and userProfile are required.' });
+app.post('/query', authMiddleware, async (req, res) => {
+  const { userPrompt } = req.body;
+  if (!userPrompt) {
+    return res.status(400).json({ error: 'userPrompt is required' });
   }
 
   try {
-    const response = await axios.post(
+    const groqResponse = await axios.post(
       'https://api.groq.com/openai/v1/chat/completions',
       {
         model: 'llama3-70b-8192',
-        temperature: 0.4, //  Set temperature here
-        top_p: 0.85, //  Set top_p here
-        top_k: 40, //  Set top_k here
-        stop: ["end","stop"], //  Stop sequence to end the response
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `User Profile: ${userProfile}\n\n${userPrompt}` }
-        ]
+          { role: 'user', content: `User expertise: ${req.user.expertise}\n${userPrompt}` }
+        ],
+        temperature: 0.7,
+        top_p: 0.9,
+        stop: ["\nEND", "stop"],
       },
       {
         headers: {
@@ -81,27 +91,52 @@ app.post('/query', async (req, res) => {
       }
     );
 
-    const data = response.data;
-
+    const data = groqResponse.data;
 
     if (data.usage) {
-      const { prompt_tokens, completion_tokens, total_tokens } = data.usage;
-      console.log(`Token Usage - Prompt: ${prompt_tokens}, Completion: ${completion_tokens}, Total: ${total_tokens}`);
+      console.log(`Tokens used - Prompt: ${data.usage.prompt_tokens}, Completion: ${data.usage.completion_tokens}, Total: ${data.usage.total_tokens}`);
     }
 
-    const reply = data.choices[0].message.content;
-    res.json({ response: reply });
+    let aiResult;
+    if (data.choices[0].finish_reason === 'function_call' && data.choices[0].message.function_call) {
+      aiResult = { function_call: data.choices[0].message.function_call };
+    } else {
+      const rawContent = data.choices[0].message.content;
+      const parsed = tryParseJSON(rawContent);
+      if (parsed) {
+        aiResult = parsed;
+      } else {
+        aiResult = { response: rawContent };
+      }
+    }
 
+    // Save chat to DB
+    await Chat.create({
+      userId: req.user.userId,
+      prompt: userPrompt,
+      response: aiResult.response || JSON.stringify(aiResult)
+    });
+
+    res.json(aiResult);
   } catch (error) {
     console.error('Groq API error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to fetch AI response from Groq.' });
   }
 });
 
+
 app.get('/', (req, res) => {
-  res.send('✅ AeroNexous AI (Chain of Thought) backend is running.');
+  res.send('AeroNexous AI (Groq) backend is running.');
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  try{
+    mongoose.connect(MongoURL).then(() => {
+      console.log('Connected to MongoDB');
+    }).catch((err) => {
+      console.error('MongoDB connection error:', err);
+    });
+}catch(err){
+  console.log("MongoDB connection error:", err);}
+  console.log(`Server is running on port ${PORT}`)}
+);
