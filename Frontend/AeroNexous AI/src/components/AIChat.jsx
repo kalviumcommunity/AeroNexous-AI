@@ -19,7 +19,7 @@ const AIChat = () => {
 
   const fetchChatHistory = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/chat/getchat', {
+      const res = await axios.get('https://aeronexous-ai.onrender.com/chat/getchat', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setChatHistory(res.data);

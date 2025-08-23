@@ -19,7 +19,7 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/user/profile', {
+      const res = await axios.get('https://aeronexous-ai.onrender.com/user/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setForm({ ...res.data, password: '' });
@@ -34,7 +34,7 @@ const Profile = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await axios.put('http://localhost:3000/user/editprofile', form, {
+      const res = await axios.put('https://aeronexous-ai.onrender.com/user/editprofile', form, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessage(res.data.message);
